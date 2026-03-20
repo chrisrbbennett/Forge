@@ -1,4 +1,4 @@
-const CACHE = 'forge-v4';
+const CACHE = 'forge-v5';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -25,12 +25,24 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  if (e.request.url.includes('openfoodfacts.org')) {
+  const url = new URL(e.request.url);
+
+  // Redirect /index.html to clean folder URL so Safari shows no filename
+  if (url.pathname.endsWith('/index.html')) {
+    const clean = url.pathname.replace('/index.html', '/') + url.search + url.hash;
+    e.respondWith(Response.redirect(clean, 301));
+    return;
+  }
+
+  // Always network-first for food API
+  if (url.hostname.includes('openfoodfacts.org')) {
     e.respondWith(
-      fetch(e.request).catch(() => new Response('[]', { headers: { 'Content-Type': 'application/json' } }))
+      fetch(e.request).catch(() => new Response('[]', {headers:{'Content-Type':'application/json'}}))
     );
     return;
   }
+
+  // Cache-first for everything else
   e.respondWith(
     caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
       if (res && res.status === 200) {
