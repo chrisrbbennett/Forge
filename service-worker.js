@@ -1,4 +1,4 @@
-const CACHE = 'forge-v1';
+const CACHE = 'forge-v3';
 const ASSETS = [
   '/index.html',
   '/manifest.json',
@@ -25,7 +25,6 @@ self.addEventListener('activate', e => {
 });
 
 self.addEventListener('fetch', e => {
-  // Network first for Open Food Facts API, cache first for everything else
   if (e.request.url.includes('openfoodfacts.org')) {
     e.respondWith(
       fetch(e.request).catch(() => new Response('[]', { headers: { 'Content-Type': 'application/json' } }))
